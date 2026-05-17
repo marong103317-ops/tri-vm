@@ -2,6 +2,11 @@
 name = "tri-vm"
 version = "0.1.0"
 edition = "2024"
-description = "Balanced Ternary Virtual Machine — architecture experiment for AI on ternary"
+description = "Balanced Ternary Virtual Machine — architecture experiment for ternary computing & AI"
+keywords = ["ternary", "vm", "balanced-ternary", "esoteric", "virtual-machine"]
+categories = ["science::computer-science", "simulation"]
+license = "MIT"
+repository = "https://github.com/anomalyco/tri-vm"
+homepage = "https://github.com/anomalyco/tri-vm"
 
 [dependencies]
