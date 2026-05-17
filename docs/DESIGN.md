@@ -188,6 +188,7 @@ src/
 ├── tryte.rs         ✅ v0.2 完成
 ├── instruction.rs   ✅ v0.3 完成
 ├── vm.rs            ✅ v0.4 + v0.5 Syscall
+├── assembler.rs     ✅ v0.6 Assembler
 ```
 
 ---
@@ -201,5 +202,5 @@ src/
 | v0.3 | Instruction | 22 测试 ✅ |
 | v0.4 | VM + Fibonacci | 79 测试 ✅ |
 | v0.5 | Syscall + CLI | 10 测试 ✅ (146 tests total) |
-| v0.6 | Assembler | .tri → load → run |
+| v0.6 | Assembler | .tri → load → run | ✅ |
 | v0.7 | AI demo | 小 NN 推理 |

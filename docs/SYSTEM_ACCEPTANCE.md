@@ -139,11 +139,12 @@ square:
 **输入**：验证溢出饱和机制
 
 ```asm
+  LDI  R5, 0
   LDI  R0, 364
   LDI  R1, 1
   ADD  R0, R0, R1       ; 应饱和到 364
   SYSCALL 3             ; 输出 "364"
-  MOV  R0, R7           ; R7 = 溢出标志
+  ADD  R0, R7, R5       ; R7 = 溢出标志
   SYSCALL 3             ; 输出 "1"（正溢出）
   SYSCALL 1
 ```
