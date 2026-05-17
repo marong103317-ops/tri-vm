@@ -105,6 +105,9 @@ First trit selects format:
 - **SYSCALL Rs**: function code goes in Rs register, argument in R0.
 - **Bare T** in source = -1 (balanced ternary digit). Pure digit strings like `10` are
   always decimal 10, never parsed as balanced ternary 3.
+- **MAC clobbers R7** — `exec_inst` writes overflow flag to `self.regs[7]` after
+  every MAC/ADDI/MULI/ADD/SUB/etc. Never use R7 as a persistent pointer across MAC
+  calls. Use R5 instead (never written as side-effect flag).
 
 ## Common tasks
 
