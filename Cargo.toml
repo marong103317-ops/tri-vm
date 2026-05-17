@@ -1,7 +1,7 @@
 [package]
 name = "tri-vm"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 description = "Balanced Ternary Virtual Machine — architecture experiment for ternary computing & AI"
 keywords = ["ternary", "vm", "balanced-ternary", "esoteric", "virtual-machine"]
 categories = ["science::computer-science", "simulation"]
