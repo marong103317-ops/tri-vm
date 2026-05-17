@@ -1,198 +1,157 @@
-; ============================================================
-; TriVM 能力演示 — 系统化展示所有指令和特性
-; ============================================================
-; 用法: cargo run -- examples/demo.tri
-;
-; 寄存器约定:
-;   R5 = 0 (零寄存器, 用于 ADD 模拟 MOV)
-; ============================================================
-
+; TriVM 能力演示 — 系统化展示所有指令
+; 寄存器约定: R5 = 0 (用于 MOV 模拟)
 .text
-  LDI   R5, 0          ; 零寄存器
+  LDI   R5, 0
 
-  ; ─── 1. 欢迎消息 ───
-  LDI   R0, msg_hello
+  ; === 0. 欢迎 ===
+  LDI   R0, s_hello
   LDI   R1, 7          ; PRINT_S
   SYSCALL R1
 
-  ; ─── 2. 算术演示:  (3 + 5) × 2 - 4 = 12 ───
-  LDI   R0, msg_arith
-  LDI   R1, 7          ; PRINT_S
+  ; === 1. 算术 (3+5)*2-4=12 ===
+  LDI   R0, s_arith
+  LDI   R1, 7
   SYSCALL R1
   LDI   R0, 3
   LDI   R1, 5
   LDI   R2, 2
   LDI   R3, 4
-  ADD   R4, R0, R1     ; R4 = 3 + 5 = 8
-  MUL   R4, R4, R2     ; R4 = 8 × 2 = 16
-  SUB   R4, R4, R3     ; R4 = 16 - 4 = 12
+  ADD   R4, R0, R1     ; R4 = 8
+  MUL   R4, R4, R2     ; R4 = 16
+  SUB   R4, R4, R3     ; R4 = 12
   ADD   R0, R4, R5     ; R0 = 12 (MOV via R5=0)
   LDI   R1, 3          ; PRINT_D
   SYSCALL R1
 
-  ; ─── 3. 除法与取模: 10 ÷ 3 = 3 ... 1 ───
-  LDI   R0, msg_div
+  ; === 2. 除法 10/3=3 r=1 ===
+  LDI   R0, s_div
   LDI   R1, 7
   SYSCALL R1
   LDI   R0, 10
   LDI   R1, 3
-  DIV   R2, R0, R1     ; R2 = 10 / 3 = 3
-  MOD   R3, R0, R1     ; R3 = 10 % 3 = 1
+  DIV   R2, R0, R1
+  MOD   R3, R0, R1
   ADD   R0, R2, R5
-  LDI   R1, 3          ; PRINT_D for quotient
+  LDI   R1, 3
   SYSCALL R1
-  LDI   R0, msg_r
+  LDI   R0, s_r
   LDI   R1, 7
   SYSCALL R1
   ADD   R0, R3, R5
   LDI   R1, 3
   SYSCALL R1
 
-  ; ─── 4. 比较指令: CMP 和 SGN ───
-  LDI   R0, msg_cmp
+  ; === 3. MAC 乘累加: 1*4+2*5+3*6=32 ===
+  LDI   R0, s_mac
   LDI   R1, 7
   SYSCALL R1
-  LDI   R0, 7
-  LDI   R1, 3
-  CMP   R2, R0, R1     ; R2 = sgn(7-3) = 1
-  LDI   R0, msg_cmp_73
-  LDI   R1, 7
-  SYSCALL R1
-  ADD   R0, R2, R5
-  LDI   R1, 3
-  SYSCALL R1
-
-  LDI   R0, msg_sgn
-  LDI   R1, 7
-  SYSCALL R1
-  LDI   R0, -5
-  SGN   R0, R0         ; R0 = sgn(-5) = -1
-  LDI   R1, 3
-  SYSCALL R1
-
-  ; ─── 5. MAC 乘累加: [1,2,3]·[4,5,6] = 32 ───
-  LDI   R0, msg_mac
-  LDI   R1, 7
-  SYSCALL R1
-  LDI   R0, 0          ; sum = 0
+  LDI   R0, 0
   LDI   R1, 1
   LDI   R2, 4
-  MAC   R0, R1, R2     ; sum += 1×4 = 4
+  MAC   R0, R1, R2     ; 4
   LDI   R1, 2
   LDI   R2, 5
-  MAC   R0, R1, R2     ; sum += 2×5 = 14
+  MAC   R0, R1, R2     ; 14
   LDI   R1, 3
   LDI   R2, 6
-  MAC   R0, R1, R2     ; sum += 3×6 = 32
+  MAC   R0, R1, R2     ; 32
   LDI   R1, 3
   SYSCALL R1
 
-  ; ─── 6. 条件分支: 循环 5→0 ───
-  LDI   R0, msg_loop
+  ; === 4. 循环 + 条件分支 ===
+  LDI   R0, s_loop
   LDI   R1, 7
   SYSCALL R1
-  LDI   R4, 5
-loop_start:
-  BZ   R4, loop_done
-  ADD   R0, R4, R5
+  LDI   R3, 3
+l_start:
+  BZ   R3, l_done
+  ADD   R0, R3, R5
   LDI   R1, 3
+  SYSCALL R1           ; 打印 3 2 1
+  LDI   R0, 32
+  LDI   R1, 4          ; PRINT_C (' ')
   SYSCALL R1
-  LDI   R0, 32         ; ' '
-  LDI   R1, 4          ; PRINT_C
-  SYSCALL R1
-  ADDI  R4, R4, -1
-  JMP   loop_start
-loop_done:
-  LDI   R0, 10         ; '\n'
-  LDI   R1, 4
+  ADDI  R3, R3, -1
+  JMP   l_start
+l_done:
+  LDI   R0, 10
+  LDI   R1, 4          ; PRINT_C (\n)
   SYSCALL R1
 
-  ; ─── 7. 子程序调用: 阶乘 5! = 120 ───
-  LDI   R0, msg_fact
+  ; === 5. 子程序: 4! = 24 ===
+  LDI   R0, s_fact
   LDI   R1, 7
   SYSCALL R1
-  LDI   R0, 5
+  LDI   R0, 4
   CALL  factorial
   LDI   R1, 3
   SYSCALL R1
 
-  ; ─── 8. 内存操作: 写入并读回 ───
-  LDI   R0, msg_mem
+  ; === 6. 内存: 存99到mem[50], 再读回 ===
+  LDI   R0, s_mem
+  LDI   R1, 7
+  SYSCALL R1
+  LDI   R0, 99
+  LDI   R1, 50
+  ST    R0, R1, 0
+  LD    R0, R1, 0
+  LDI   R1, 3
+  SYSCALL R1
+
+  ; === 7. 平衡三进制: 42 = 1T1T0 ===
+  LDI   R0, s_tern
   LDI   R1, 7
   SYSCALL R1
   LDI   R0, 42
-  LDI   R1, 100
-  ST    R0, R1, 0      ; mem[100] = 42
-  LD    R0, R1, 0      ; R0 = mem[100] = 42
-  LDI   R1, 3
-  SYSCALL R1
-
-  ; ─── 9. 平衡三进制输出 ───
-  LDI   R0, msg_tern
-  LDI   R1, 7
-  SYSCALL R1
-  LDI   R0, 42         ; 42 = 1T1T0
   LDI   R1, 2          ; PRINT_T
   SYSCALL R1
 
-  ; ─── 10. 溢出饱和演示 ───
-  LDI   R0, msg_ovf
+  ; === 8. 溢出饱和: 364+1=364 ov=1 ===
+  LDI   R0, s_ovf
   LDI   R1, 7
   SYSCALL R1
-  LDI   R0, 364        ; Tryte 最大值
+  LDI   R0, 364
   LDI   R1, 1
-  ADD   R0, R0, R1     ; 364+1 → 饱和到 364, R7=1
+  ADD   R0, R0, R1     ; 饱和到 364, R7=1
   LDI   R1, 3
   SYSCALL R1
-  LDI   R0, msg_ov
-  LDI   R1, 7
+  LDI   R0, 32
+  LDI   R1, 4          ; PRINT_C (' ')
   SYSCALL R1
-  ADD   R0, R7, R5     ; R7 = 溢出标志
+  ADD   R0, R7, R5
   LDI   R1, 3
-  SYSCALL R1
+  SYSCALL R1           ; 打印溢出标志
 
-  ; ─── 结束 ───
-  LDI   R0, msg_done
+  ; === 9. 结束 ===
+  LDI   R0, s_done
   LDI   R1, 7
   SYSCALL R1
   LDI   R1, 1          ; EXIT
   SYSCALL R1
 
-; ════════════════════════════════════════════════════════════
-; 子程序: factorial (迭代实现)
-; 输入: R0 = n
-; 输出: R0 = n!
-; 使用: R6 = 累加器, R5 = 0
-; ════════════════════════════════════════════════════════════
+; ─── 阶乘: R0 = n, 返回 R0 = n! ───
 factorial:
-  LDI   R6, 1          ; result = 1
-loop_fact:
+  LDI   R6, 1
+f_loop:
   ADDI  R2, R0, -1
-  BZ    R2, done_fact  ; n == 1 → result * 1
-  BN    R2, done_fact  ; n < 1 → result * 1
-  MUL   R6, R6, R0     ; result *= n
-  ADDI  R0, R0, -1     ; n--
-  JMP   loop_fact
-done_fact:
-  MUL   R0, R6, R0     ; R0 = result * n (n is 1 or 0)
+  BZ    R2, f_done
+  BN    R2, f_done
+  MUL   R6, R6, R0
+  ADDI  R0, R0, -1
+  JMP   f_loop
+f_done:
+  MUL   R0, R6, R0
   RET
 
-; ════════════════════════════════════════════════════════════
-; 字符串数据
-; ════════════════════════════════════════════════════════════
 .data
-msg_hello:  .asciiz "\n=== TriVM Demo ===\n\n"
-msg_arith:  .asciiz "1.Arith (3+5)*2-4="
-msg_div:    .asciiz "\n2.Div 10/3="
-msg_r:      .asciiz " r="
-msg_cmp:    .asciiz "\n3.Cmp "
-msg_cmp_73: .asciiz "cmp(7,3)="
-msg_sgn:    .asciiz " sgn(-5)="
-msg_mac:    .asciiz "\n4.MAC dot="
-msg_loop:   .asciiz "\n5.Loop: "
-msg_fact:   .asciiz "\n6.Fact 5!="
-msg_mem:    .asciiz "\n7.Mem[100]="
-msg_tern:   .asciiz "\n8.Tern 42="
-msg_ovf:    .asciiz "\n9.Ovf 364+1="
-msg_ov:     .asciiz " f="
-msg_done:   .asciiz "\n\n=== Done ===\n"
+s_hello: .asciiz "\n=== TriVM Demo ===\n"
+s_arith: .asciiz "\n1.Arith="
+s_div:   .asciiz "\n2.Div="
+s_r:     .asciiz " r="
+s_mac:   .asciiz "\n3.MAC="
+s_loop:  .asciiz "\n4.Loop: "
+s_fact:  .asciiz "\n5.Fact="
+s_mem:   .asciiz "\n6.Mem="
+s_tern:  .asciiz "\n7.Tern="
+s_ovf:   .asciiz "\n8.Ovf="
+s_done:  .asciiz "\n=== Done ===\n"
