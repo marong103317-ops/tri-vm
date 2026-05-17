@@ -1,0 +1,147 @@
+; TriVM v0.7 — 4→4→1 平衡三进制神经网络推理
+;
+; 架构: Input [4] → FC(4→4) → SGN → FC(4→1) → SGN → Output [1]
+;
+; 寄存器:
+;   R1-R4 = 输入向量 / 隐层向量
+;   R5    = 权重地址指针 (fc_neuron 推进, 不破坏)
+;   R6    = 临时 (fc_neuron 破坏)
+;   R7    = MAC 破坏 (溢出标志)
+;   R0    = 累加器
+
+.text
+
+  ; ════════════════════════
+  ; 测试输入: [1, 1, T, T] → 期望输出: 1
+  ; ════════════════════════
+  LDI   R1, 1
+  LDI   R2, 1
+  LDI   R3, T
+  LDI   R4, T
+
+  ; ════════════════════════
+  ; Layer 1: 4 → 4 (SGN)
+  ; R1-R4 在整个 Layer 1 中保持输入值不变
+  ; ════════════════════════
+
+  ; 隐层神经元 0
+  LDI   R5, ly1_w00
+  CALL  fc_neuron
+  SGN   R0, R0
+  LDI   R6, 200
+  ST    R0, R6, 0
+
+  ; 隐层神经元 1
+  LDI   R5, ly1_w10
+  CALL  fc_neuron
+  SGN   R0, R0
+  LDI   R6, 201
+  ST    R0, R6, 0
+
+  ; 隐层神经元 2
+  LDI   R5, ly1_w20
+  CALL  fc_neuron
+  SGN   R0, R0
+  LDI   R6, 202
+  ST    R0, R6, 0
+
+  ; 隐层神经元 3
+  LDI   R5, ly1_w30
+  CALL  fc_neuron
+  SGN   R0, R0
+  LDI   R6, 203
+  ST    R0, R6, 0
+
+  ; ════════════════════════
+  ; Layer 2: 4 → 1 (SGN)
+  ; 从内存 200-203 加载隐层输出到 R1-R4
+  ; ════════════════════════
+
+  LDI   R6, 200
+  LD    R1, R6, 0
+  LDI   R6, 201
+  LD    R2, R6, 0
+  LDI   R6, 202
+  LD    R3, R6, 0
+  LDI   R6, 203
+  LD    R4, R6, 0
+
+  LDI   R5, ly2_w00
+  CALL  fc_neuron
+  SGN   R0, R0
+
+  ; ════════════════════════
+  ; 输出结果
+  ; ════════════════════════
+  LDI   R1, 3           ; PRINT_D
+  SYSCALL R1
+  LDI   R0, 10          ; \n
+  LDI   R1, 4           ; PRINT_C
+  SYSCALL R1
+
+  ; ════════════════════════
+  ; 退出
+  ; ════════════════════════
+  LDI   R0, 0
+  LDI   R1, 1           ; EXIT
+  SYSCALL R1
+
+; ═══════════════════════════════════════════
+; fc_neuron — 全连接神经元 (4 输入 + 偏置)
+;
+; R1-R4 = 输入向量 (只读, 不被修改)
+; R5    = 权重基地址指针 (被推进, MAC 不破坏)
+; R0    = 返回值: sum = Σ(w·x) + bias
+; R6, R7 被破坏 (MAC 写 R7 = 溢出标志)
+; ═══════════════════════════════════════════
+fc_neuron:
+  LDI   R0, 0
+  LD    R6, R5, 0
+  MAC   R0, R1, R6
+  ADDI  R5, R5, 1
+  LD    R6, R5, 0
+  MAC   R0, R2, R6
+  ADDI  R5, R5, 1
+  LD    R6, R5, 0
+  MAC   R0, R3, R6
+  ADDI  R5, R5, 1
+  LD    R6, R5, 0
+  MAC   R0, R4, R6
+  ADDI  R5, R5, 1
+  LD    R6, R5, 0        ; bias
+  ADD   R0, R0, R6
+  RET
+
+; ═══════════════════════════════════════════
+; 权重数据: 每神经元 4 权重 + 1 偏置, 连续排放
+; ═══════════════════════════════════════════
+.data
+ly1_w00: .word 1
+ly1_w01: .word 0
+ly1_w02: .word T
+ly1_w03: .word 0
+ly1_b0:  .word 0
+
+ly1_w10: .word 0
+ly1_w11: .word 1
+ly1_w12: .word 0
+ly1_w13: .word T
+ly1_b1:  .word 0
+
+ly1_w20: .word T
+ly1_w21: .word 0
+ly1_w22: .word 1
+ly1_w23: .word 0
+ly1_b2:  .word 0
+
+ly1_w30: .word 0
+ly1_w31: .word T
+ly1_w32: .word 0
+ly1_w33: .word 1
+ly1_b3:  .word 0
+
+ly2_w00: .word 1
+ly2_w01: .word 1
+ly2_w02: .word T
+ly2_w03: .word T
+ly2_b0:  .word 0
