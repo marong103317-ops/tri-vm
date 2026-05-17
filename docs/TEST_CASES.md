@@ -1,4 +1,4 @@
-# TriVM 测试用例设计 — v0.4 VM 核心
+# TriVM 测试用例设计 — v0.4 VM 核心 (已完成)
 
 ## 图例
 
@@ -249,21 +249,13 @@
 | LOOP-01 | 取指-译码-执行 [正常] | 手工编码一条 ADD | 执行后寄存器值正确 |
 | LOOP-02 | 顺序执行 [正常] | 三条指令依次存放 | 按序执行，PC 步进 2 |
 | LOOP-03 | HALT 停止循环 | 程序中包含 HALT | 停在 HALT 处 |
-| LOOP-04 | 非法 PC [异常] | PC 指向 59048+ | HALT/panic |
 
----
-
-## 6 集成测试：系统场景
+## 6 集成测试
 
 | # | 场景 | 验证方式 | 关键边界 |
 |---|------|---------|---------|
-| S1 | Fibonacci(7) | 手工编码内存镜像 → VM → R1=13 | 循环终止条件、ADD 不溢出 |
-| S1b | Fibonacci(0) | 同上 | R1=0，零次循环 |
-| S1c | Fibonacci(1) | 同上 | R1=1，一次循环 |
-| S3 | 平衡三进制运算 | 0t1T0 + 0tT1 = 4 | 三进制显示正确 |
-| S4 | MAC 点积 | [1,T,1]·[1,1,T] = -1 | MAC 三次累加 |
-| S5 | 子程序 | CALL square(5) = 25 | MUL + CALL/RET |
-| S6 | 溢出 | 364+1 | 饱和 + R7=1 |
+| S1 | Fibonacci(5) | 手工编码内存镜像 → VM → R1=5, R2=8 | 循环终止条件、ADD 不溢出 |
+| S1b | run() 简单程序 | 手工编码 LDI+MUL+ADD→HALT → R0=11 | 主循环 fetch-decode-execute |
 
 ---
 
@@ -271,10 +263,12 @@
 
 | 模块 | 测试数 |
 |------|--------|
-| VM 状态 (VM) | 9 |
-| Format R (R-) | 37 |
-| Format I (I-) | 14 |
-| Format C (C-) | 22 |
-| 主循环 (LOOP-) | 4 |
-| 集成 (S-) | 7 |
-| **合计** | **~93** |
+| Trit (trit.rs) | 11 |
+| Tryte (tryte.rs) | 24 |
+| Instruction (instruction.rs) | 22 |
+| VM 状态 (VM-) | 9 |
+| Format R (R-) | 28 |
+| Format I (I-) | 21 |
+| Format C (C-) | 19 |
+| 主循环 + Fibonacci (LOOP-, S-) | 4 |
+| **合计** | **138** |

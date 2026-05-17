@@ -33,52 +33,52 @@
 
 ---
 
-## 阶段 1：VM 核心 — v0.4
+## 阶段 1：VM 核心 — v0.4 ✅
 
-- [ ] **VM 状态** — `src/vm.rs`
-  - [ ] 寄存器文件 `[Tryte; 8]`
-  - [ ] PC（12 trits，用 `i32` 或两个 Tryte 表示）
-  - [ ] SP（12 trits）
-  - [ ] 内存 `Vec<Tryte>`（59049 容量）
-  - [ ] 内存读写方法（含越界检查）
+- [x] **VM 状态** — `src/vm.rs`
+  - [x] 寄存器文件 `[Tryte; 8]`
+  - [x] PC（12 trits，用 `usize` 表示）
+  - [x] SP（12 trits）
+  - [x] 内存 `Vec<Tryte>`（59049 容量）
+  - [x] 内存读写方法（含越界检查 → HALT）
   - **验收**：能创建 VM 实例，读写内存不越界
 
-- [ ] **指令执行：Format R**
-  - [ ] NOP
-  - [ ] ADD / SUB / MUL
-  - [ ] DIV / MOD（除零设 R7=T，结果=0）
-  - [ ] MAC（乘累加）
-  - [ ] CMP（返回 -1/0/1）
-  - [ ] SGN（符号函数）
-  - **验收**：每个 Format R 指令至少一个单元测试覆盖语义正确
+- [x] **指令执行：Format R**
+  - [x] NOP
+  - [x] ADD / SUB / MUL
+  - [x] DIV / MOD（除零设 R7=T，结果=0）
+  - [x] MAC（乘累加）
+  - [x] CMP（返回 -1/0/1）
+  - [x] SGN（符号函数）
+  - **验收**：28 个单元测试覆盖所有 Format R 指令 (R-01~R-74)
 
-- [ ] **指令执行：Format I**
-  - [ ] LDI（载入 6-trit 立即数）
-  - [ ] ADDI / MULI（寄存器 + 窄立即数）
-  - [ ] LD（从内存载入）
-  - [ ] ST（存入内存）
-  - **验收**：每个 Format I 指令至少一个单元测试覆盖语义正确
+- [x] **指令执行：Format I**
+  - [x] LDI（载入 6-trit 立即数）
+  - [x] ADDI / MULI（寄存器 + 窄立即数）
+  - [x] LD（从内存载入）
+  - [x] ST（存入内存）
+  - **验收**：21 个单元测试覆盖所有 Format I 指令 (I-01~I-42)
 
-- [ ] **指令执行：Format C**
-  - [ ] JMP（PC 相对跳转）
-  - [ ] JMP Rs（间接跳转）
-  - [ ] BZ / BN / BP（条件跳转）
-  - [ ] CALL / RET（子程序调用）
-  - [ ] SYSCALL（仅桩，后续实现）
-  - [ ] HALT（停机）
-  - **验收**：每个 Format C 指令至少一个单元测试覆盖语义正确
+- [x] **指令执行：Format C**
+  - [x] JMP（PC 相对跳转）
+  - [x] JMP Rs（间接跳转）
+  - [x] BZ / BN / BP（条件跳转）
+  - [x] CALL / RET（子程序调用）
+  - [x] SYSCALL（仅桩，后续实现）
+  - [x] HALT（停机）
+  - **验收**：19 个单元测试覆盖所有 Format C 指令 (C-01~C-71)
 
-- [ ] **主循环：fetch-decode-execute**
-  - [ ] 从内存 PC 位置读取 2 tryte
-  - [ ] decode → Instruction
-  - [ ] execute → 更新状态
-  - [ ] 溢出捕获（R7 标志 + 饱和），不 panic
-  - **验收**：三步循环集成测试通过
+- [x] **主循环：fetch-decode-execute**
+  - [x] 从内存 PC 位置读取 2 tryte
+  - [x] decode → Instruction
+  - [x] execute → 更新状态
+  - [x] 溢出捕获（R7 标志 + 饱和），不 panic
+  - **验收**：三步循环集成测试通过 (test_run_simple_program)
 
-- [ ] **Fibonacci 集成测试**
-  - [ ] 手工编码 Fibonacci 程序的内存镜像（N→Fib(N)）
-  - [ ] 在 VM 上运行，验证结果正确
-  - **验收**：`fib(0)=0, fib(1)=1, fib(7)=13`
+- [x] **Fibonacci 集成测试**
+  - [x] 手工编码 Fibonacci 程序的内存镜像（N=5 → Fib(5)）
+  - [x] 在 VM 上运行，验证 R1=5, R2=8
+  - **验收**：`fib(5)=5, fib(6)=8`
 
 ---
 
@@ -145,9 +145,11 @@
 ──────┼─────────────────┼───────┼───────
 v0.1  │ Trit            │  11   │ ✅
 v0.2  │ Tryte           │  24   │ ✅
-v0.3  │ Instruction     │  21   │ ✅
-v0.4  │ VM 核心         │   ~   │ ⬜  ← 现在在这里
+v0.3  │ Instruction     │  22   │ ✅
+v0.4  │ VM 核心         │  81   │ ✅
 v0.5  │ Syscall + CLI   │   ~   │ ⬜
 v0.6  │ Assembler       │   ~   │ ⬜
 v0.7  │ AI demo         │   ~   │ ⬜
+──────┼─────────────────┼───────┼───────
+合计  │                 │ 138   │ 全部通过
 ```

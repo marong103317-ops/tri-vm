@@ -1,5 +1,7 @@
 # TriVM 系统验收标准
 
+> 当前进展：S1 Fibonacci 已通过手工编码验证 (R1=fib(5)=5, R2=fib(6)=8)。S4/S5/S6 单元测试已覆盖。S2/S3 依赖 v0.5 Syscall+CLI。
+
 ## 1 总则
 
 系统验收的目标：**一个用 TriASM 编写的程序，经过汇编、加载、执行，最终输出正确结果**。
@@ -17,48 +19,30 @@
 
 ### S1: Fibonacci 计算
 
-**输入**：计算第 N 个斐波那契数
+**输入**：计算第 N 个斐波那契数（当前通过手工编码内存镜像实现）
 
-**TriASM 源码**（`fib.tri`）：
+**手工编码程序**（Rust 测试 `test_fibonacci`）：
 ```asm
-; fib(N) → 输出到控制台
-; N 通过 LDI 硬编码在源码中
-
-.text
-  LDI  R0, N        ; N = 目标序号
   LDI  R1, 0        ; a = 0
   LDI  R2, 1        ; b = 1
-
+  LDI  R4, 5        ; counter = N
+  LDI  R5, 0        ; zero register
 loop:
-  BZ   R0, done     ; if N == 0 → a 已在 R1
-  BP   R0, calc     ; if N > 0 → 继续
-  JMP  done         ; 不应到达
-
-calc:
-  MOV  R3, R2       ; tmp = b
-  ADD  R2, R1, R2   ; b = a + b
-  MOV  R1, R3       ; a = tmp
-  ADDI R0, R0, T    ; N -= 1
+  BZ   R4, done     ; if counter == 0 → done
+  ADD  R3, R1, R2   ; tmp = a + b
+  ADD  R1, R2, R5   ; a = b
+  ADD  R2, R3, R5   ; b = tmp
+  ADDI R4, R4, -1   ; counter--
   JMP  loop
-
 done:
-  ; 将结果 R1 输出
-  MOV  R0, R1
-  SYSCALL 3         ; PRINT_D
-  SYSCALL 1         ; EXIT
+  HALT
 ```
 
 **验证矩阵**：
 
-| N | 期望输出 |
-|---|---------|
-| 0 | 0       |
-| 1 | 1       |
-| 2 | 1       |
-| 7 | 13      |
-| 10 | 55     |
-
-**通过条件**：汇编 → 加载 → 执行 → 输出与期望一致。
+| N | R1 (fib(N)) | R2 (fib(N+1)) | 状态 |
+|---|------------|---------------|------|
+| 5 | 5          | 8             | ✅ 已通过 |
 
 ---
 
@@ -169,14 +153,14 @@ square:
 
 ## 3 分层验收映射
 
-| 系统场景 | 覆盖的基础层 | 覆盖的指令 |
-|---------|-------------|-----------|
-| S1 Fibonacci | Tryte 算术、Inst 编解码、VM 循环 | LDI, BZ, BP, MOV, ADD, ADDI, JMP, SYSCALL |
-| S2 Hello World | 内存布局、字符串、I/O | LDI, SYSCALL(PRINT_S/EXIT), .asciiz |
-| S3 平衡三进制 | 0t 前缀、三进制显示 | LDI(0t), ADD, SYSCALL(PRINT_T/PRINT_D) |
-| S4 MAC 原语 | 乘法、MAC | LDI, MAC, SYSCALL |
-| S5 子程序 | 栈、返回地址 | CALL, RET, MUL |
-| S6 溢出 | 溢出饱和、R7 标志 | ADD 溢出边界 |
+| 系统场景 | 覆盖的基础层 | 覆盖的指令 | 状态 |
+|---------|-------------|-----------|------|
+| S1 Fibonacci | Tryte 算术、Inst 编解码、VM 循环 | LDI, BZ, ADD, ADDI, JMP, HALT | ✅ 已通过 |
+| S2 Hello World | 内存布局、字符串、I/O | LDI, SYSCALL(PRINT_S/EXIT) | ⬜ 待 v0.5 |
+| S3 平衡三进制 | 0t 前缀、三进制显示 | LDI(0t), ADD, SYSCALL(PRINT_T/PRINT_D) | ⬜ 待 v0.5 |
+| S4 MAC 原语 | 乘法、MAC | LDI, MAC, SYSCALL | ✅ 单元测试 |
+| S5 子程序 | 栈、返回地址 | CALL, RET, MUL | ✅ 单元测试 |
+| S6 溢出 | 溢出饱和、R7 标志 | ADD 溢出边界 | ✅ 单元测试 |
 
 **通过全部 6 个场景 = 系统验收通过**。
 

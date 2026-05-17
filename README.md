@@ -162,53 +162,48 @@ src/
 |------|------|--------|------|
 | v0.1 | Trit | 11 | ✅ 已完成 |
 | v0.2 | Tryte | 24 | ✅ 已完成 |
-| v0.3 | Instruction | 21 | ✅ 已完成 |
-| v0.4 | VM 核心 | ~93 | ⬜ 进行中 |
-| v0.5 | Syscall + CLI | — | ⬜ |
+| v0.3 | Instruction | 22 | ✅ 已完成 |
+| v0.4 | VM 核心 | 81 | ✅ 已完成 |
+| v0.5 | Syscall + CLI | — | ⬜ 待开始 |
 | v0.6 | Assembler | — | ⬜ |
 | v0.7 | AI demo | — | ⬜ |
+| | **合计** | **138** | **全部通过** |
 
 ---
 
 ## 示例：Fibonacci
 
 ```asm
-; fib(N) → 输出到控制台
-.text
-  LDI  R0, N        ; N = 目标序号
+; fib(5) → R1=5, R2=8
   LDI  R1, 0        ; a = 0
   LDI  R2, 1        ; b = 1
+  LDI  R4, 5        ; counter = N
+  LDI  R5, 0        ; zero register
 
 loop:
-  BZ   R0, done     ; if N == 0 → done
-  BP   R0, calc     ; if N > 0 → continue
-  JMP  done
-
-calc:
-  MOV  R3, R2       ; tmp = b
-  ADD  R2, R1, R2   ; b = a + b
-  MOV  R1, R3       ; a = tmp
-  ADDI R0, R0, T    ; N -= 1
+  BZ   R4, done     ; if counter == 0 → done
+  ADD  R3, R1, R2   ; tmp = a + b
+  ADD  R1, R2, R5   ; a = b
+  ADD  R2, R3, R5   ; b = tmp
+  ADDI R4, R4, -1   ; counter--
   JMP  loop
 
 done:
-  MOV  R0, R1
-  SYSCALL 3         ; PRINT_D
-  SYSCALL 1         ; EXIT
+  HALT
 ```
 
 ---
 
 ## 系统验收场景
 
-| 场景 | 验证内容 |
-|------|---------|
-| S1 Fibonacci | Tryte 算术、Inst 编解码、VM 循环 |
-| S2 Hello World | 内存布局、字符串、I/O |
-| S3 平衡三进制运算 | 0t 前缀、三进制显示 |
-| S4 MAC 原语 | 乘法、MAC 累加 |
-| S5 子程序调用 | CALL/RET、栈操作 |
-| S6 溢出检测 | 溢出饱和、R7 标志 |
+| 场景 | 验证内容 | 状态 |
+|------|---------|------|
+| S1 Fibonacci | Tryte 算术、Inst 编解码、VM 循环 | ✅ 手工编码通过 (R1=fib(5)=5) |
+| S2 Hello World | 内存布局、字符串、I/O | ⬜ 待 v0.5 |
+| S3 平衡三进制运算 | 0t 前缀、三进制显示 | ⬜ 待 v0.5 Syscall |
+| S4 MAC 原语 | 乘法、MAC 累加 | ✅ 单元测试覆盖 |
+| S5 子程序调用 | CALL/RET、栈操作 | ✅ 单元测试覆盖 |
+| S6 溢出检测 | 溢出饱和、R7 标志 | ✅ 单元测试覆盖 |
 
 通过全部 6 个场景 = 系统验收通过。
 

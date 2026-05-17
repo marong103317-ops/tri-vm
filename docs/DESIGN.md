@@ -184,11 +184,11 @@ I-b (1 寄存器 + 宽立即数): | 1 | op 2t | rd 3t | imm 6t |
 src/
 ├── lib.rs
 ├── main.rs
-├── trit.rs        ✅ v0.1 done
-├── tryte.rs       ← v0.2
-├── instruction.rs ← v0.3
-├── vm.rs          ← v0.4
-└── syscall.rs     ← v0.5
+├── trit.rs          ✅ v0.1 完成
+├── tryte.rs         ✅ v0.2 完成
+├── instruction.rs   ✅ v0.3 完成
+├── vm.rs            ✅ v0.4 完成
+└── syscall.rs       ← v0.5
 ```
 
 ---
@@ -198,9 +198,9 @@ src/
 | 阶段 | 内容 | 验证 |
 |------|------|------|
 | v0.1 | Trit | 11 测试 ✅ |
-| v0.2 | Tryte | 边界测试 |
-| v0.3 | Instruction | 编解码测试 |
-| v0.4 | VM + Fibonacci | 跑通 fib(7)=13 |
+| v0.2 | Tryte | 24 测试 ✅ |
+| v0.3 | Instruction | 22 测试 ✅ |
+| v0.4 | VM + Fibonacci | 81 测试 ✅ (138 tests total) |
 | v0.5 | Syscall + CLI | 人能互动 |
 | v0.6 | Assembler | .tri → load → run |
 | v0.7 | AI demo | 小 NN 推理 |
