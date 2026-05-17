@@ -126,7 +126,7 @@ Fixed-width 2 trytes = 12 trits. First trit determines format:
 # Build the VM
 cargo build --release
 
-# Run all tests (184 tests)
+# Run all tests (190 tests)
 cargo test
 
 # Run assembly source file
