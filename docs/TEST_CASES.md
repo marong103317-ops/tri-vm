@@ -1,8 +1,58 @@
-# TriVM 测试用例设计 — v0.5 Syscall + CLI (已完成)
+# TriVM 测试用例设计 — v0.6 Assembler (已完成)
 
 ## 图例
 
 `[正常]` — 常规路径；`[边界]` — 极限值；`[异常]` — 错误处理
+
+---
+
+## 0 Assembler 测试 (v0.6 新增)
+
+### 0.1 Lexer
+
+| # | 测试 | 条件 | 期望 |
+|---|------|------|------|
+| A-01 | 指令助记符 token [正常] | `ADD R0, R1, R2` | Token::Mnemonic("ADD"), Reg(0), Comma, Reg(1), Comma, Reg(2) |
+| A-02 | 十进制数字 [正常] | `LDI R0, 42` | Token::Mnemonic("LDI"), Reg(0), Comma, Number(42) |
+| A-03 | 负数字 [正常] | `LDI R0, -5` | Token::Number(-5) |
+| A-04 | 0t 三进制 [正常] | `0t1T0` | Token::Number(6) |
+| A-05 | 0x 十六进制 [正常] | `0x2A` | Token::Number(42) |
+| A-06 | 0b 二进制 [正常] | `0b101010` | Token::Number(42) |
+| A-07 | 裸 T 为 -1 [边界] | `T` | Token::Number(-1) |
+| A-08 | 纯数字保持十进制 [边界] | `10` | Token::Number(10), 不是三进制 3 |
+| A-09 | 注释忽略 [正常] | `ADD R0,R1,R2 ; 注释` | 分号后全部忽略 |
+| A-10 | 字符串字面量 [正常] | `.asciiz "Hello"` | Token::String("Hello") |
+| A-11 | 标签定义 [正常] | `loop:` | Token::Label("loop") |
+
+### 0.2 Parser
+
+| # | 测试 | 条件 | 期望 |
+|---|------|------|------|
+| A-20 | 指令解析 [正常] | `ADD R0, R1, R2` | ParsedLine::Inst { mnemonic, operands } |
+| A-21 | 裸标签 [正常] | `start:\nLDI R0, 0` | 标签绑定到 LDI |
+| A-22 | 行内标签 [正常] | `loop: ADD R0,R1,R2` | 标签绑定到 ADD |
+| A-23 | 连续裸标签报错 [异常] | `a:\nb:\nNOP` | 报错 |
+| A-24 | 段切换 .text/.data [正常] | `.data` / `.text` | section 追踪正确 |
+| A-25 | .word 数据 [正常] | `.word 1, -3, 0tT1` | 三个数据值 |
+| A-26 | .asciiz 字符串 [正常] | `.asciiz "Hi"` | ParsedLine::Asciiz("Hi") |
+| A-27 | HALT 带操作数报错 [异常] | `HALT R0` | 报错 |
+| A-28 | RET 带操作数报错 [异常] | `RET R0` | 报错 |
+| A-29 | 文件末尾裸标签报错 [异常] | `end:`（末行） | 报错 |
+
+### 0.3 Codegen
+
+| # | 测试 | 条件 | 期望 |
+|---|------|------|------|
+| A-40 | 简单指令编码 [正常] | `NOP` | 1 条指令 = 2 Tryte |
+| A-41 | 标签引用 [正常] | `JMP target` | 偏移量正确计算 |
+| A-42 | 标签相对偏移 [边界] | `BZ R0, end` | offset = end_addr - cur_addr |
+| A-43 | 数据段 .word [正常] | `.word 42` | 1 Tryte = 42 |
+| A-44 | 数据段 .asciiz [正常] | `.asciiz "AB"` | 2 Tryte ('A', 'B') + null |
+| A-45 | Hello World 全链路 [系统] | `hello.tri` | 输出 "Hello, TriVM!" |
+| A-46 | Fibonacci 全链路 [系统] | `fib.tri` | fib(10)=55 |
+| A-47 | 子程序全链路 [系统] | `subroutine.tri` | 输出 "25" |
+| A-48 | 三进制全链路 [系统] | `ternary.tri` | 输出 "114" |
+| A-49 | MAC 点积全链路 [系统] | `dot_product.tri` | 输出 "-1" |
 
 ---
 
@@ -257,7 +307,7 @@
 | S1 | Fibonacci(5) | 手工编码内存镜像 → VM → R1=5, R2=8 | 循环终止条件、ADD 不溢出 |
 | S1b | run() 简单程序 | 手工编码 LDI+MUL+ADD→HALT → R0=11 | 主循环 fetch-decode-execute |
 
-## 7 Syscall 指令 (v0.5 新增)
+## 7 Syscall 指令 (v0.5 实现，v0.6 全链路验证)
 
 ### 7.1 EXIT (func=1)
 
@@ -311,4 +361,5 @@
 | Format I (I-) | 21 |
 | Format C + Syscall (C-, S-) | 19 + 10 |
 | 主循环 + Fibonacci (LOOP-, S-) | 2 |
-| **合计** | **146** |
+| Assembler 单元测试 (A-) + 全链路 | 38 |
+| **合计** | **184** |

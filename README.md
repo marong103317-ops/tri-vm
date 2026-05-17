@@ -44,6 +44,8 @@
 59048
 ```
 
+> 汇编器输出为连续二进制从地址 0 排放，不分段。程序可使用 `.text`/`.data` 切换段，地址连续增长。
+
 ---
 
 ## 指令集
@@ -136,8 +138,11 @@ cargo build
 # 运行测试
 cargo test
 
-# 运行（需要 .tri 二进制文件）
-cargo run -- <file.tribin>
+# 运行汇编源码（.tri）
+cargo run -- examples/hello.tri
+
+# 或运行预编译二进制（.tribin）
+cargo run -- examples/fib.tribin
 ```
 
 ---
@@ -151,6 +156,7 @@ src/
 ├── tryte.rs        # Tryte 类型与算术
 ├── instruction.rs  # 指令集编解码
 ├── vm.rs           # 虚拟机核心
+├── assembler.rs    # 汇编器（Lexer → Parser → Codegen）
 └── main.rs         # CLI 入口
 ```
 
@@ -165,9 +171,9 @@ src/
 | v0.3 | Instruction | 22 | ✅ 已完成 |
 | v0.4 | VM 核心 | 79 | ✅ 已完成 |
 | v0.5 | Syscall + CLI | 10 | ✅ 已完成 |
-| v0.6 | Assembler | — | ⬜ |
+| v0.6 | Assembler | 38 | ✅ 已完成 |
 | v0.7 | AI demo | — | ⬜ |
-| | **合计** | **146** | **全部通过** |
+| | **合计** | **184** | **全部通过** |
 
 ---
 
@@ -192,18 +198,36 @@ done:
   HALT
 ```
 
+## 综合演示
+
+`cargo run -- examples/demo.tri` 系统化展示所有指令类别：
+
+```
+=== TriVM Demo ===
+
+1.Arith=12           ← (3+5)×2-4
+2.Div=3 r=1          ← 10÷3 余 1
+3.MAC=32             ← [1,2,3]·[4,5,6]
+4.Loop: 3 2 1        ← BZ/JMP
+5.Fact=24            ← CALL/RET 4!
+6.Mem=99             ← ST/LD
+7.Tern=1TTT0         ← 平衡三进制
+8.Ovf=364 1          ← 溢出饱和 + R7
+=== Done ===
+```
+
 ---
 
 ## 系统验收场景
 
 | 场景 | 验证内容 | 状态 |
 |------|---------|------|
-| S1 Fibonacci | Tryte 算术、Inst 编解码、VM 循环 | ✅ 手工编码通过 (R1=fib(5)=5) |
-| S2 Hello World | 内存布局、字符串、I/O | ✅ PRINT_S/PRINT_C 实现，待汇编器 |
-| S3 平衡三进制运算 | 0t 前缀、三进制显示 | ✅ PRINT_T 实现，待汇编器 |
-| S4 MAC 原语 | 乘法、MAC 累加 | ✅ 单元测试覆盖 |
-| S5 子程序调用 | CALL/RET、栈操作 | ✅ 单元测试覆盖 |
-| S6 溢出检测 | 溢出饱和、R7 标志 | ✅ 单元测试覆盖 |
+| S1 Fibonacci | Tryte 算术、Inst 编解码、VM 循环 | ✅ 汇编源码全链路通过 |
+| S2 Hello World | 内存布局、字符串、I/O | ✅ 汇编源码全链路通过 |
+| S3 平衡三进制运算 | 0t 前缀、三进制显示 | ✅ 汇编源码全链路通过 |
+| S4 MAC 原语 | 乘法、MAC 累加 | ✅ 汇编源码全链路通过 |
+| S5 子程序调用 | CALL/RET、栈操作 | ✅ 汇编源码全链路通过 |
+| S6 溢出检测 | 溢出饱和、R7 标志 | ✅ 汇编源码全链路通过 |
 
 通过全部 6 个场景 = 系统验收通过。
 
@@ -214,7 +238,7 @@ done:
 - [设计文档](docs/DESIGN.md) — 完整架构与指令集定义
 - [开发路线图](docs/ROADMAP.md) — 分阶段开发计划与验收标准
 - [系统验收标准](docs/SYSTEM_ACCEPTANCE.md) — 全链路验收场景
-- [测试用例](docs/TEST_CASES.md) — v0.5 Syscall + CLI 测试用例设计
+- [测试用例](docs/TEST_CASES.md) — v0.6 Assembler 测试用例设计
 
 ---
 

@@ -1,7 +1,8 @@
 # TriVM 系统验收标准
 
-> 当前进展：S1~S6 全部可通过单元测试验证。S2/S3 依赖汇编器 + CLI 实现完整链路。
-> v0.5 Syscall 实现完成（EXIT/PRINT_T/PRINT_D/PRINT_C/PRINT_S），CLI 二进制可执行 .tri 文件。
+> 当前进展：**全部 6 个场景（S1~S6）均已实现汇编源码全链路通过**。
+>
+> v0.6 Assembler 完成：`.tri` 源码 → 汇编 → VM 加载 → 执行 → 输出。CLI 自动检测输入是 `.tri` 还是 `.tribin`。
 
 ## 1 总则
 
@@ -54,8 +55,10 @@ done:
 ```asm
 .text
   LDI   R0, msg
-  SYSCALL 7         ; PRINT_S
-  SYSCALL 1         ; EXIT
+  LDI   R1, 7         ; PRINT_S
+  SYSCALL R1
+  LDI   R1, 1         ; EXIT
+  SYSCALL R1
 
 .data
 msg:
@@ -63,6 +66,8 @@ msg:
 ```
 
 **通过条件**：输出 `Hello, TriVM!`。
+
+**状态**：✅ `cargo run -- examples/hello.tri` 输出正确。
 
 ---
 
@@ -76,12 +81,17 @@ msg:
   LDI  R0, 0t1T0
   LDI  R1, 0tT1
   ADD  R0, R0, R1      ; R0 = 6 + (-2) = 4
-  SYSCALL 2             ; PRINT_T → 应输出 "11"
-  SYSCALL 3             ; PRINT_D → 应输出 "4"
-  SYSCALL 1
+  LDI  R1, 2           ; PRINT_T
+  SYSCALL R1           ; → 应输出 "11"
+  LDI  R1, 3           ; PRINT_D
+  SYSCALL R1           ; → 应输出 "4"
+  LDI  R1, 1           ; EXIT
+  SYSCALL R1
 ```
 
 **通过条件**：输出 `114`（三进制 11，紧接十进制 4）。
+
+**状态**：✅ `cargo run -- examples/ternary.tri` 输出 `114`。
 
 ---
 
@@ -106,11 +116,15 @@ msg:
   LDI  R2, T
   MAC  R0, R1, R2       ; sum += 1 × T = -1 → -1
 
-  SYSCALL 3             ; PRINT_D → 应输出 "-1"
-  SYSCALL 1
+  LDI  R1, 3            ; PRINT_D
+  SYSCALL R1            ; → 应输出 "-1"
+  LDI  R1, 1            ; EXIT
+  SYSCALL R1
 ```
 
 **通过条件**：输出 `-1`。
+
+**状态**：✅ `cargo run -- examples/dot_product.tri` 输出 `-1`。
 
 ---
 
@@ -122,8 +136,10 @@ msg:
 .text
   LDI   R0, 5
   CALL  square          ; R0 = square(5) = 25
-  SYSCALL 3
-  SYSCALL 1
+  LDI   R1, 3
+  SYSCALL R1
+  LDI   R1, 1
+  SYSCALL R1
 
 square:
   MUL   R0, R0, R0
@@ -131,6 +147,8 @@ square:
 ```
 
 **通过条件**：输出 `25`。
+
+**状态**：✅ `cargo run -- examples/subroutine.tri` 输出 `25`。
 
 ---
 
@@ -143,13 +161,18 @@ square:
   LDI  R0, 364
   LDI  R1, 1
   ADD  R0, R0, R1       ; 应饱和到 364
-  SYSCALL 3             ; 输出 "364"
+  LDI  R1, 3            ; PRINT_D
+  SYSCALL R1            ; 输出 "364"
   ADD  R0, R7, R5       ; R7 = 溢出标志
-  SYSCALL 3             ; 输出 "1"（正溢出）
-  SYSCALL 1
+  LDI  R1, 3
+  SYSCALL R1            ; 输出 "1"（正溢出）
+  LDI  R1, 1
+  SYSCALL R1
 ```
 
 **通过条件**：输出 `3641`（364 紧接 1）。
+
+**状态**：✅ 验证通过（demo.tri 中包含此场景）。
 
 ---
 
@@ -157,14 +180,14 @@ square:
 
 | 系统场景 | 覆盖的基础层 | 覆盖的指令 | 状态 |
 |---------|-------------|-----------|------|
-| S1 Fibonacci | Tryte 算术、Inst 编解码、VM 循环 | LDI, BZ, ADD, ADDI, JMP, HALT | ✅ 已通过 |
-| S2 Hello World | 内存布局、字符串、I/O | LDI, SYSCALL(PRINT_S/EXIT) | ✅ Syscall 就绪，待汇编器 |
-| S3 平衡三进制 | 0t 前缀、三进制显示 | LDI(0t), ADD, SYSCALL(PRINT_T/PRINT_D) | ✅ Syscall 就绪，待汇编器 |
-| S4 MAC 原语 | 乘法、MAC | LDI, MAC, SYSCALL | ✅ 单元测试 |
-| S5 子程序 | 栈、返回地址 | CALL, RET, MUL | ✅ 单元测试 |
-| S6 溢出 | 溢出饱和、R7 标志 | ADD 溢出边界 | ✅ 单元测试 |
+| S1 Fibonacci | Tryte 算术、Inst 编解码、VM 循环 | LDI, BZ, ADD, ADDI, JMP, HALT | ✅ 汇编全链路 |
+| S2 Hello World | 内存布局、字符串、I/O | LDI, SYSCALL(PRINT_S/EXIT) | ✅ 汇编全链路 |
+| S3 平衡三进制 | 0t 前缀、三进制显示 | LDI(0t), ADD, SYSCALL(PRINT_T/PRINT_D/EXIT) | ✅ 汇编全链路 |
+| S4 MAC 原语 | 乘法、MAC | LDI, MAC, SYSCALL(PRINT_D/EXIT) | ✅ 汇编全链路 |
+| S5 子程序 | 栈、返回地址 | CALL, RET, MUL, SYSCALL(PRINT_D/EXIT) | ✅ 汇编全链路 |
+| S6 溢出 | 溢出饱和、R7 标志 | ADD 溢出边界, SYSCALL(PRINT_D/EXIT) | ✅ 汇编全链路 |
 
-**通过全部 6 个场景 = 系统验收通过**。
+**通过全部 6 个场景 = 系统验收通过** ✅
 
 ---
 
@@ -187,17 +210,21 @@ fn system_fibonacci_n7() {
 
 ### 4.2 手动验证（CLI）
 
-二进制格式：原始 i16 little-endian 值序列（每个 tryte 2 字节），无文件头。
+CLI 自动检测文件后缀：
 
 ```bash
-# 执行已经汇编好的程序
-cargo run -- examples/hello.tribin
+# 汇编源码 .tri → 自动汇编 + 执行
+cargo run -- examples/hello.tri
 # 期望输出: Hello, TriVM!
+
+# 预编译二进制 .tribin → 直接加载 + 执行
+cargo run -- examples/fib.tribin
+# 期望输出: （无输出，程序 halt 或无 PRINT syscall）
 ```
 
-### 4.3 分阶段验证（无汇编器时）
+### 4.3 分阶段验证（无汇编器时，已废弃）
 
-在没有汇编器的情况下，可以手动构造内存镜像，直接用 VM 加载：
+汇编器已就绪。以下为历史参考：在没有汇编器的情况下，可以手动构造内存镜像，直接用 VM 加载：
 
 ```rust
 // 手工编码 fib(7) 的内存镜像
@@ -218,7 +245,6 @@ assert_eq!(vm.regs[1].to_i16(), 13);  // fib(7) = 13
 
 以下内容属于"有更好，但不影响系统验收通过"：
 
-- 汇编器错误提示友好度
 - VM 执行性能（周期计数）
 - 调试器（断点、单步）
 - AI 模型的训练过程（仅前向推理）
