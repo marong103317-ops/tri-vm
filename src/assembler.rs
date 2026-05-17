@@ -1259,4 +1259,306 @@ square:
         vm.run();
         assert_eq!(vm.regs[0].to_i16(), 25);
     }
+
+    #[test]
+    fn test_sgn_zero_prints_zero() {
+        let src = "\
+LDI R0, 0
+SGN R0, R0
+LDI R1, 3
+SYSCALL R1
+LDI R1, 1
+SYSCALL R1
+";
+        let binary = assemble(src).unwrap();
+        let mut vm = VM::new();
+        for (i, t) in binary.iter().enumerate() {
+            vm.memory[i] = *t;
+        }
+        vm.run();
+        assert_eq!(vm.output, "0");
+    }
+
+    #[test]
+    fn test_store_load_addr_200() {
+        let src = "\
+LDI R5, 0
+LDI R0, 42
+LDI R6, 200
+ST R0, R6, 0
+LDI R6, 200
+LD R0, R6, 0
+LDI R1, 3
+SYSCALL R1
+LDI R1, 1
+SYSCALL R1
+";
+        let binary = assemble(src).unwrap();
+        let mut vm = VM::new();
+        for (i, t) in binary.iter().enumerate() {
+            vm.memory[i] = *t;
+        }
+        vm.run();
+        assert_eq!(vm.output, "42");
+        assert_eq!(vm.exit_code, 42);
+    }
+
+    #[test]
+    fn test_tnn_one_neuron_zero_input() {
+        let src = "\
+LDI R5, ly1_w00
+LDI R1, 0
+LDI R2, 0
+LDI R3, 0
+LDI R4, 0
+LDI R0, 0
+LD R6, R5, 0
+MAC R0, R1, R6
+ADDI R5, R5, 1
+LD R6, R5, 0
+MAC R0, R2, R6
+ADDI R5, R5, 1
+LD R6, R5, 0
+MAC R0, R3, R6
+ADDI R5, R5, 1
+LD R6, R5, 0
+MAC R0, R4, R6
+ADDI R5, R5, 1
+LD R6, R5, 0
+ADD R0, R0, R6
+LDI R1, 3
+SYSCALL R1
+LDI R0, 0
+LDI R1, 1
+SYSCALL R1
+.data
+ly1_w00: .word 1
+ly1_w01: .word 0
+ly1_w02: .word T
+ly1_w03: .word 0
+ly1_b0:  .word 0
+";
+        let binary = assemble(src).unwrap();
+        let mut vm = VM::new();
+        for (i, t) in binary.iter().enumerate() {
+            vm.memory[i] = *t;
+        }
+        vm.run();
+        assert_eq!(vm.output, "0");
+    }
+
+    #[test]
+    fn test_tnn_inference_all_positive() {
+        // Input [1,1,T,T] → output 1  (tnn.tri 默认测试向量)
+        let source = include_str!("../examples/tnn.tri");
+        let binary = assemble(source).unwrap();
+        let mut vm = VM::new();
+        for (i, t) in binary.iter().enumerate() {
+            vm.memory[i] = *t;
+        }
+        vm.run();
+        assert_eq!(vm.output, "1\n");
+    }
+
+    #[test]
+    fn test_tnn_all_ones() {
+        // Input [1,1,1,1] → output 0
+        let src = "\
+.text
+LDI R1, 1
+LDI R2, 1
+LDI R3, 1
+LDI R4, 1
+LDI R5, ly1_w00
+CALL fc_neuron
+SGN R0, R0
+LDI R6, 200
+ST R0, R6, 0
+LDI R5, ly1_w10
+CALL fc_neuron
+SGN R0, R0
+LDI R6, 201
+ST R0, R6, 0
+LDI R5, ly1_w20
+CALL fc_neuron
+SGN R0, R0
+LDI R6, 202
+ST R0, R6, 0
+LDI R5, ly1_w30
+CALL fc_neuron
+SGN R0, R0
+LDI R6, 203
+ST R0, R6, 0
+LDI R6, 200
+LD R1, R6, 0
+LDI R6, 201
+LD R2, R6, 0
+LDI R6, 202
+LD R3, R6, 0
+LDI R6, 203
+LD R4, R6, 0
+LDI R5, ly2_w00
+CALL fc_neuron
+SGN R0, R0
+LDI R1, 3
+SYSCALL R1
+LDI R0, 10
+LDI R1, 4
+SYSCALL R1
+LDI R0, 0
+LDI R1, 1
+SYSCALL R1
+fc_neuron:
+LDI R0, 0
+LD R6, R5, 0
+MAC R0, R1, R6
+ADDI R5, R5, 1
+LD R6, R5, 0
+MAC R0, R2, R6
+ADDI R5, R5, 1
+LD R6, R5, 0
+MAC R0, R3, R6
+ADDI R5, R5, 1
+LD R6, R5, 0
+MAC R0, R4, R6
+ADDI R5, R5, 1
+LD R6, R5, 0
+ADD R0, R0, R6
+RET
+.data
+ly1_w00: .word 1
+ly1_w01: .word 0
+ly1_w02: .word T
+ly1_w03: .word 0
+ly1_b0:  .word 0
+ly1_w10: .word 0
+ly1_w11: .word 1
+ly1_w12: .word 0
+ly1_w13: .word T
+ly1_b1:  .word 0
+ly1_w20: .word T
+ly1_w21: .word 0
+ly1_w22: .word 1
+ly1_w23: .word 0
+ly1_b2:  .word 0
+ly1_w30: .word 0
+ly1_w31: .word T
+ly1_w32: .word 0
+ly1_w33: .word 1
+ly1_b3:  .word 0
+ly2_w00: .word 1
+ly2_w01: .word 1
+ly2_w02: .word T
+ly2_w03: .word T
+ly2_b0:  .word 0
+";
+        let binary = assemble(src).unwrap();
+        let mut vm = VM::new();
+        for (i, t) in binary.iter().enumerate() {
+            vm.memory[i] = *t;
+        }
+        vm.run();
+        assert_eq!(vm.output, "0\n");
+    }
+
+    #[test]
+    fn test_tnn_inference_all_zero() {
+        // Input [0,0,0,0] → output 0
+        let src = "\
+.text
+  LDI R1, 0
+  LDI R2, 0
+  LDI R3, 0
+  LDI R4, 0
+  LDI R5, ly1_w00
+  CALL fc_neuron
+  SGN R0, R0
+  LDI R6, 200
+  ST R0, R6, 0
+  LDI R5, ly1_w10
+  CALL fc_neuron
+  SGN R0, R0
+  LDI R6, 201
+  ST R0, R6, 0
+  LDI R5, ly1_w20
+  CALL fc_neuron
+  SGN R0, R0
+  LDI R6, 202
+  ST R0, R6, 0
+  LDI R5, ly1_w30
+  CALL fc_neuron
+  SGN R0, R0
+  LDI R6, 203
+  ST R0, R6, 0
+  LDI R6, 200
+  LD R1, R6, 0
+  LDI R6, 201
+  LD R2, R6, 0
+  LDI R6, 202
+  LD R3, R6, 0
+  LDI R6, 203
+  LD R4, R6, 0
+  LDI R5, ly2_w00
+  CALL fc_neuron
+  SGN R0, R0
+  LDI R1, 3
+  SYSCALL R1
+  LDI R0, 10
+  LDI R1, 4
+  SYSCALL R1
+  LDI R0, 0
+  LDI R1, 1
+  SYSCALL R1
+fc_neuron:
+  LDI R0, 0
+  LD R6, R5, 0
+  MAC R0, R1, R6
+  ADDI R5, R5, 1
+  LD R6, R5, 0
+  MAC R0, R2, R6
+  ADDI R5, R5, 1
+  LD R6, R5, 0
+  MAC R0, R3, R6
+  ADDI R5, R5, 1
+  LD R6, R5, 0
+  MAC R0, R4, R6
+  ADDI R5, R5, 1
+  LD R6, R5, 0
+  ADD R0, R0, R6
+  RET
+.data
+ly1_w00: .word 1
+ly1_w01: .word 0
+ly1_w02: .word T
+ly1_w03: .word 0
+ly1_b0:  .word 0
+ly1_w10: .word 0
+ly1_w11: .word 1
+ly1_w12: .word 0
+ly1_w13: .word T
+ly1_b1:  .word 0
+ly1_w20: .word T
+ly1_w21: .word 0
+ly1_w22: .word 1
+ly1_w23: .word 0
+ly1_b2:  .word 0
+ly1_w30: .word 0
+ly1_w31: .word T
+ly1_w32: .word 0
+ly1_w33: .word 1
+ly1_b3:  .word 0
+ly2_w00: .word 1
+ly2_w01: .word 1
+ly2_w02: .word T
+ly2_w03: .word T
+ly2_b0:  .word 0
+";
+        let binary = assemble(src).unwrap();
+        let mut vm = VM::new();
+        for (i, t) in binary.iter().enumerate() {
+            vm.memory[i] = *t;
+        }
+        vm.run();
+        assert_eq!(vm.output, "0\n");
+    }
 }
