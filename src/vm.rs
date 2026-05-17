@@ -305,8 +305,45 @@ impl VM {
                 self.pc = self.stack_pop()?;
             }
             Instruction::Syscall { rs } => {
-                self.exit_code = self.regs[rs.idx() as usize].to_i16() as i32;
-                self.running = false;
+                let func = self.regs[rs.idx() as usize].to_i16();
+                match func {
+                    1 => { // EXIT
+                        self.exit_code = self.regs[0].to_i16() as i32;
+                        self.running = false;
+                    }
+                    2 => { // PRINT_T
+                        self.output.push_str(&self.regs[0].to_string());
+                        self.pc += 2;
+                    }
+                    3 => { // PRINT_D
+                        self.output.push_str(&self.regs[0].to_i16().to_string());
+                        self.pc += 2;
+                    }
+                    4 => { // PRINT_C
+                        if let Some(c) = char::from_u32(self.regs[0].to_i16() as u32) {
+                            self.output.push(c);
+                        }
+                        self.pc += 2;
+                    }
+                    7 => { // PRINT_S
+                        let mut addr = self.regs[0].to_i16() as i32;
+                        let start = addr;
+                        loop {
+                            if addr - start >= 256 { break; }
+                            let val = self.mem_read(addr)?;
+                            let byte = val.to_i16();
+                            if byte == 0 { break; }
+                            if let Some(c) = char::from_u32(byte as u32) {
+                                self.output.push(c);
+                            }
+                            addr += 1;
+                        }
+                        self.pc += 2;
+                    }
+                    _ => {
+                        self.pc += 2; // invalid func — continue
+                    }
+                }
             }
             Instruction::Halt => {
                 self.running = false;
@@ -1088,23 +1125,124 @@ mod tests {
     // ── C-60~62: SYSCALL ──
 
     #[test]
-    fn test_syscall_sets_exit_code() {
+    fn test_syscall_exit() {
         let mut vm = VM::new();
         place_inst(&mut vm, 0, &Instruction::Syscall { rs: r(1) });
-        vm.regs[1] = t(42);
+        vm.regs[1] = t(1);  // EXIT
+        vm.regs[0] = t(42); // exit code
         vm.step().unwrap();
         assert_eq!(vm.exit_code, 42);
         assert!(!vm.running);
     }
 
     #[test]
-    fn test_syscall_neg_exit_code() {
+    fn test_syscall_exit_neg() {
         let mut vm = VM::new();
         place_inst(&mut vm, 0, &Instruction::Syscall { rs: r(1) });
-        vm.regs[1] = t(-1);
+        vm.regs[1] = t(1);  // EXIT
+        vm.regs[0] = t(-1); // exit code
         vm.step().unwrap();
         assert_eq!(vm.exit_code, -1);
         assert!(!vm.running);
+    }
+
+    #[test]
+    fn test_syscall_print_t() {
+        let mut vm = VM::new();
+        place_inst(&mut vm, 0, &Instruction::Syscall { rs: r(1) });
+        vm.regs[1] = t(2); // PRINT_T
+        vm.regs[0] = t(4); // 4 = 0t11
+        vm.step().unwrap();
+        assert_eq!(vm.output, "11");
+        assert!(vm.running); // not halted
+    }
+
+    #[test]
+    fn test_syscall_print_d() {
+        let mut vm = VM::new();
+        place_inst(&mut vm, 0, &Instruction::Syscall { rs: r(1) });
+        vm.regs[1] = t(3); // PRINT_D
+        vm.regs[0] = t(42);
+        vm.step().unwrap();
+        assert_eq!(vm.output, "42");
+        assert!(vm.running);
+    }
+
+    #[test]
+    fn test_syscall_print_c() {
+        let mut vm = VM::new();
+        place_inst(&mut vm, 0, &Instruction::Syscall { rs: r(1) });
+        vm.regs[1] = t(4); // PRINT_C
+        vm.regs[0] = t(65); // 'A'
+        vm.step().unwrap();
+        assert_eq!(vm.output, "A");
+        assert!(vm.running);
+    }
+
+    #[test]
+    fn test_syscall_print_s() {
+        let mut vm = VM::new();
+        place_inst(&mut vm, 0, &Instruction::Syscall { rs: r(1) });
+        vm.regs[1] = t(7); // PRINT_S
+        vm.memory[100] = t(72);   // 'H'
+        vm.memory[101] = t(105);  // 'i'
+        vm.memory[102] = t(0);    // null
+        vm.regs[0] = t(100); // addr
+        vm.step().unwrap();
+        assert_eq!(vm.output, "Hi");
+        assert!(vm.running);
+    }
+
+    #[test]
+    fn test_syscall_print_s_empty() {
+        let mut vm = VM::new();
+        place_inst(&mut vm, 0, &Instruction::Syscall { rs: r(1) });
+        vm.regs[1] = t(7);
+        vm.memory[200] = t(0);
+        vm.regs[0] = t(200);
+        vm.step().unwrap();
+        assert_eq!(vm.output, "");
+        assert!(vm.running);
+    }
+
+    #[test]
+    fn test_syscall_print_s_truncate() {
+        let mut vm = VM::new();
+        for i in 0..260 {
+            vm.memory[i] = t(65); // 'A' — no null within 256 bytes
+        }
+        place_inst(&mut vm, 500, &Instruction::Syscall { rs: r(1) });
+        vm.regs[1] = t(7);
+        vm.regs[0] = t(0); // address of string (all 'A')
+        vm.pc = 500;
+        vm.step().unwrap();
+        assert_eq!(vm.output.len(), 256);
+        assert!(vm.running);
+    }
+
+    #[test]
+    fn test_syscall_invalid_func() {
+        let mut vm = VM::new();
+        place_inst(&mut vm, 0, &Instruction::Syscall { rs: r(1) });
+        vm.regs[1] = t(0); // invalid
+        vm.step().unwrap();
+        assert_eq!(vm.output, "");
+        assert!(vm.running); // not halted
+    }
+
+    #[test]
+    fn test_syscall_accumulates() {
+        let mut vm = VM::new();
+        place_inst(&mut vm, 0, &Instruction::Syscall { rs: r(1) });
+        place_inst(&mut vm, 2, &Instruction::Syscall { rs: r(1) });
+        vm.regs[1] = t(3); // PRINT_D (both calls)
+        vm.regs[0] = t(42);
+        vm.step().unwrap();
+        assert_eq!(vm.output, "42");
+        vm.regs[0] = t(50);
+        vm.step().unwrap();
+        assert_eq!(vm.output, "4250");
+        assert!(vm.running);
     }
 
     // ── C-70: HALT ──
