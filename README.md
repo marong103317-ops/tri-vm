@@ -163,11 +163,11 @@ src/
 | v0.1 | Trit | 11 | ✅ 已完成 |
 | v0.2 | Tryte | 24 | ✅ 已完成 |
 | v0.3 | Instruction | 22 | ✅ 已完成 |
-| v0.4 | VM 核心 | 81 | ✅ 已完成 |
-| v0.5 | Syscall + CLI | — | ⬜ 待开始 |
+| v0.4 | VM 核心 | 79 | ✅ 已完成 |
+| v0.5 | Syscall + CLI | 10 | ✅ 已完成 |
 | v0.6 | Assembler | — | ⬜ |
 | v0.7 | AI demo | — | ⬜ |
-| | **合计** | **138** | **全部通过** |
+| | **合计** | **146** | **全部通过** |
 
 ---
 
@@ -199,8 +199,8 @@ done:
 | 场景 | 验证内容 | 状态 |
 |------|---------|------|
 | S1 Fibonacci | Tryte 算术、Inst 编解码、VM 循环 | ✅ 手工编码通过 (R1=fib(5)=5) |
-| S2 Hello World | 内存布局、字符串、I/O | ⬜ 待 v0.5 |
-| S3 平衡三进制运算 | 0t 前缀、三进制显示 | ⬜ 待 v0.5 Syscall |
+| S2 Hello World | 内存布局、字符串、I/O | ✅ PRINT_S/PRINT_C 实现，待汇编器 |
+| S3 平衡三进制运算 | 0t 前缀、三进制显示 | ✅ PRINT_T 实现，待汇编器 |
 | S4 MAC 原语 | 乘法、MAC 累加 | ✅ 单元测试覆盖 |
 | S5 子程序调用 | CALL/RET、栈操作 | ✅ 单元测试覆盖 |
 | S6 溢出检测 | 溢出饱和、R7 标志 | ✅ 单元测试覆盖 |
@@ -214,7 +214,7 @@ done:
 - [设计文档](docs/DESIGN.md) — 完整架构与指令集定义
 - [开发路线图](docs/ROADMAP.md) — 分阶段开发计划与验收标准
 - [系统验收标准](docs/SYSTEM_ACCEPTANCE.md) — 全链路验收场景
-- [测试用例](docs/TEST_CASES.md) — v0.4 VM 核心测试用例设计
+- [测试用例](docs/TEST_CASES.md) — v0.5 Syscall + CLI 测试用例设计
 
 ---
 

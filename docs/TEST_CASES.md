@@ -1,4 +1,4 @@
-# TriVM 测试用例设计 — v0.4 VM 核心 (已完成)
+# TriVM 测试用例设计 — v0.5 Syscall + CLI (已完成)
 
 ## 图例
 
@@ -257,7 +257,47 @@
 | S1 | Fibonacci(5) | 手工编码内存镜像 → VM → R1=5, R2=8 | 循环终止条件、ADD 不溢出 |
 | S1b | run() 简单程序 | 手工编码 LDI+MUL+ADD→HALT → R0=11 | 主循环 fetch-decode-execute |
 
----
+## 7 Syscall 指令 (v0.5 新增)
+
+### 7.1 EXIT (func=1)
+
+| # | 测试 | 条件 | 期望 |
+|---|------|------|------|
+| S-01 | 正常退出 [正常] | R1=1(EXIT), R0=42 → SYSCALL R1 | exit_code=42, running=false |
+| S-02 | 负退出码 [边界] | R1=1, R0=-1 → SYSCALL R1 | exit_code=-1, running=false |
+
+### 7.2 PRINT_T (func=2)
+
+| # | 测试 | 条件 | 期望 |
+|---|------|------|------|
+| S-10 | 三进制输出 [正常] | R0=4, R1=2 → SYSCALL R1 | output="11", 继续运行 |
+
+### 7.3 PRINT_D (func=3)
+
+| # | 测试 | 条件 | 期望 |
+|---|------|------|------|
+| S-20 | 十进制输出 [正常] | R0=42, R1=3 → SYSCALL R1 | output="42", 继续运行 |
+| S-21 | 多步累积 [边界] | 两次 PRINT_D: 42→50 | output="4250" |
+
+### 7.4 PRINT_C (func=4)
+
+| # | 测试 | 条件 | 期望 |
+|---|------|------|------|
+| S-30 | 字符输出 [正常] | R0=65('A'), R1=4 → SYSCALL R1 | output="A", 继续运行 |
+
+### 7.5 PRINT_S (func=7)
+
+| # | 测试 | 条件 | 期望 |
+|---|------|------|------|
+| S-40 | 字符串输出 [正常] | mem[100]="Hi\0", R0=100 → SYSCALL R1 | output="Hi" |
+| S-41 | 空字符串 [边界] | mem[200]=0, R0=200 → SYSCALL R1 | output="" |
+| S-42 | 超长截断 [边界] | 260 字节无 null → 截断到 256 | output.len()=256 |
+
+### 7.6 无效功能码
+
+| # | 测试 | 条件 | 期望 |
+|---|------|------|------|
+| S-50 | 非法 func [异常] | R1=0 → SYSCALL R1 | output="", 继续运行 |
 
 ## 汇总
 
@@ -269,6 +309,6 @@
 | VM 状态 (VM-) | 9 |
 | Format R (R-) | 28 |
 | Format I (I-) | 21 |
-| Format C (C-) | 19 |
-| 主循环 + Fibonacci (LOOP-, S-) | 4 |
-| **合计** | **138** |
+| Format C + Syscall (C-, S-) | 19 + 10 |
+| 主循环 + Fibonacci (LOOP-, S-) | 2 |
+| **合计** | **146** |

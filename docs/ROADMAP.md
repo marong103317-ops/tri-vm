@@ -82,22 +82,22 @@
 
 ---
 
-## 阶段 2：I/O 与 CLI — v0.5
+## 阶段 2：I/O 与 CLI — v0.5 ✅
 
-- [ ] **系统调用实现** — `src/syscall.rs`
-  - [ ] EXIT（终止 VM，返回退出码）
-  - [ ] PRINT_T（平衡三进制输出）
-  - [ ] PRINT_D（十进制输出）
-  - [ ] PRINT_C（ASCII 字符输出）
-  - [ ] PRINT_S（字符串输出）
-  - **验收**：Fibonacci 程序能通过 SYSCALL 输出结果
+- [x] **系统调用实现** — `src/vm.rs`
+  - [x] EXIT（终止 VM，返回退出码 R0）
+  - [x] PRINT_T（平衡三进制输出 R0）
+  - [x] PRINT_D（十进制输出 R0）
+  - [x] PRINT_C（ASCII 字符输出 R0）
+  - [x] PRINT_S（字符串输出，地址 R0，最长 256 字符）
+  - **验收**：10 个 Syscall 测试全过 (S-01~S-50)
 
-- [ ] **CLI binary** — `src/main.rs`
-  - [ ] 读取 .tri 二进制文件
-  - [ ] 加载到 VM 内存
-  - [ ] 运行 VM
-  - [ ] 打印输出
-  - **验收**：`cargo run -- examples/fib.tri` 输出正确结果
+- [x] **CLI binary** — `src/main.rs`
+  - [x] 读取 .tri 二进制文件（raw i16 LE）
+  - [x] 加载到 VM 内存
+  - [x] 运行 VM
+  - [x] 打印输出 + 返回退出码
+  - **验收**：`cargo run -- examples/fib.tribin` 输出正确结果
 
 ---
 
@@ -146,10 +146,10 @@
 v0.1  │ Trit            │  11   │ ✅
 v0.2  │ Tryte           │  24   │ ✅
 v0.3  │ Instruction     │  22   │ ✅
-v0.4  │ VM 核心         │  81   │ ✅
-v0.5  │ Syscall + CLI   │   ~   │ ⬜
+v0.4  │ VM 核心         │  79   │ ✅
+v0.5  │ Syscall + CLI   │  10   │ ✅
 v0.6  │ Assembler       │   ~   │ ⬜
 v0.7  │ AI demo         │   ~   │ ⬜
 ──────┼─────────────────┼───────┼───────
-合计  │                 │ 138   │ 全部通过
+合计  │                 │ 146   │ 全部通过
 ```

@@ -1,6 +1,7 @@
 # TriVM 系统验收标准
 
-> 当前进展：S1 Fibonacci 已通过手工编码验证 (R1=fib(5)=5, R2=fib(6)=8)。S4/S5/S6 单元测试已覆盖。S2/S3 依赖 v0.5 Syscall+CLI。
+> 当前进展：S1~S6 全部可通过单元测试验证。S2/S3 依赖汇编器 + CLI 实现完整链路。
+> v0.5 Syscall 实现完成（EXIT/PRINT_T/PRINT_D/PRINT_C/PRINT_S），CLI 二进制可执行 .tri 文件。
 
 ## 1 总则
 
@@ -156,8 +157,8 @@ square:
 | 系统场景 | 覆盖的基础层 | 覆盖的指令 | 状态 |
 |---------|-------------|-----------|------|
 | S1 Fibonacci | Tryte 算术、Inst 编解码、VM 循环 | LDI, BZ, ADD, ADDI, JMP, HALT | ✅ 已通过 |
-| S2 Hello World | 内存布局、字符串、I/O | LDI, SYSCALL(PRINT_S/EXIT) | ⬜ 待 v0.5 |
-| S3 平衡三进制 | 0t 前缀、三进制显示 | LDI(0t), ADD, SYSCALL(PRINT_T/PRINT_D) | ⬜ 待 v0.5 |
+| S2 Hello World | 内存布局、字符串、I/O | LDI, SYSCALL(PRINT_S/EXIT) | ✅ Syscall 就绪，待汇编器 |
+| S3 平衡三进制 | 0t 前缀、三进制显示 | LDI(0t), ADD, SYSCALL(PRINT_T/PRINT_D) | ✅ Syscall 就绪，待汇编器 |
 | S4 MAC 原语 | 乘法、MAC | LDI, MAC, SYSCALL | ✅ 单元测试 |
 | S5 子程序 | 栈、返回地址 | CALL, RET, MUL | ✅ 单元测试 |
 | S6 溢出 | 溢出饱和、R7 标志 | ADD 溢出边界 | ✅ 单元测试 |
@@ -185,11 +186,12 @@ fn system_fibonacci_n7() {
 
 ### 4.2 手动验证（CLI）
 
+二进制格式：原始 i16 little-endian 值序列（每个 tryte 2 字节），无文件头。
+
 ```bash
-# 汇编 + 执行
-triasm examples/fib.tri -o fib.tribin
-trivm fib.tribin
-# 期望输出: 13
+# 执行已经汇编好的程序
+cargo run -- examples/hello.tribin
+# 期望输出: Hello, TriVM!
 ```
 
 ### 4.3 分阶段验证（无汇编器时）

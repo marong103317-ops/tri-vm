@@ -183,12 +183,11 @@ I-b (1 寄存器 + 宽立即数): | 1 | op 2t | rd 3t | imm 6t |
 ```
 src/
 ├── lib.rs
-├── main.rs
+├── main.rs          ✅ v0.5 CLI
 ├── trit.rs          ✅ v0.1 完成
 ├── tryte.rs         ✅ v0.2 完成
 ├── instruction.rs   ✅ v0.3 完成
-├── vm.rs            ✅ v0.4 完成
-└── syscall.rs       ← v0.5
+├── vm.rs            ✅ v0.4 + v0.5 Syscall
 ```
 
 ---
@@ -200,7 +199,7 @@ src/
 | v0.1 | Trit | 11 测试 ✅ |
 | v0.2 | Tryte | 24 测试 ✅ |
 | v0.3 | Instruction | 22 测试 ✅ |
-| v0.4 | VM + Fibonacci | 81 测试 ✅ (138 tests total) |
-| v0.5 | Syscall + CLI | 人能互动 |
+| v0.4 | VM + Fibonacci | 79 测试 ✅ |
+| v0.5 | Syscall + CLI | 10 测试 ✅ (146 tests total) |
 | v0.6 | Assembler | .tri → load → run |
 | v0.7 | AI demo | 小 NN 推理 |
