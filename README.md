@@ -15,7 +15,7 @@
 - **Assembler**: Built-in assembler for `.tri` source files
 - **CLI**: Run ternary programs directly from source or compiled binaries
 - **AI Primitives**: MAC (Multiply-Accumulate) operations for neural networks
-- **184 Tests**: Comprehensive test coverage
+- **190 Tests**: Comprehensive test coverage
 
 ## 🎯 Keywords & Tags
 
@@ -164,7 +164,11 @@ tri-vm/
 │   ├── ternary.tri     # Balanced ternary arithmetic
 │   ├── subroutine.tri  # CALL/RET demonstration
 │   ├── dot_product.tri # MAC dot product
-│   └── demo.tri        # Complete feature showcase
+│   ├── demo.tri        # Complete feature showcase
+│   ├── tnn.tri         # 4→4→1 TNN inference
+│   └── tnn_ref.py      # Python reference for TNN
+├── AGENTS.md          # AI agent guide
+├── opencode.json
 ├── Cargo.toml
 ├── LICENSE
 └── README.md
@@ -182,8 +186,8 @@ tri-vm/
 | v0.4 | VM Core | 79 | ✅ Complete |
 | v0.5 | Syscall + CLI | 10 | ✅ Complete |
 | v0.6 | Assembler | 38 | ✅ Complete |
-| v0.7 | AI Demo | — | 🟡 In Progress |
-| **Total** | | **184** | ✅ All Passing |
+| v0.7 | AI Demo (TNN) | 6 | ✅ Complete |
+| **Total** | | **190** | ✅ All Passing |
 
 ---
 
@@ -212,7 +216,7 @@ done:
 
 ## 🤖 AI Demonstration
 
-Run the comprehensive demo:
+### Demo (all-instruction showcase)
 
 ```bash
 cargo run -- examples/demo.tri
@@ -233,6 +237,16 @@ Output:
 === Done ===
 ```
 
+### TNN (Ternary Neural Network)
+
+```bash
+cargo run -- examples/tnn.tri
+```
+
+Output: `1`
+
+A 4→4→1 balanced ternary neural network performing inference (input `[1,1,T,T]` → output `1`). Weights are hardcoded in the `.data` section. The Python reference `examples/tnn_ref.py` validates all 8 test vectors.
+
 ---
 
 ## ✅ System Acceptance
@@ -245,6 +259,7 @@ Output:
 | S4 MAC Primitive | Multiply-Accumulate for neural networks | ✅ Pass |
 | S5 Subroutine | CALL/RET, stack operations | ✅ Pass |
 | S6 Overflow | Saturation, R7 flag | ✅ Pass |
+| S7 TNN Demo | 4→4→1 TNN inference, Python reference | ✅ Pass |
 
 ---
 

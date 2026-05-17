@@ -1,8 +1,8 @@
-# TriVM — 平衡三进制虚拟机 (v6)
+# TriVM — 平衡三进制虚拟机 (v7)
 
 > 目标：在二进制硬件上用 Rust 实现一台最小平衡三进制虚拟机，证明三进制计算可以在二进制机器上跑通，并在此基础上探索三进制 AI 的可能性。
 >
-> 当前状态：Trit → Tryte → Instruction → VM → Assembler 全链路完成。
+> 当前状态：Trit → Tryte → Instruction → VM → Assembler → TNN Demo 全链路完成。（190 测试全过）
 
 ---
 
@@ -117,6 +117,10 @@ I-b (1 寄存器 + 宽立即数): | 1 | op 2t | rd 3t | imm 6t |
 | 01 | I-a | `MULI Rd, Rs, imm` | Rd = Rs × imm |
 | 10 | I-a | `LD Rd, [Rs + imm]` | Rd = mem[Rs + imm] |
 | 1T | I-a | `ST Rs, [Rd + imm]` | mem[Rd + imm] = Rs |
+| 11 | —   | 保留 | — |
+| T0 | —   | 保留 | — |
+| TT | —   | 保留 | — |
+| T1 | —   | 保留 | — |
 
 ### Format C
 
@@ -155,6 +159,8 @@ I-b (1 寄存器 + 宽立即数): | 1 | op 2t | rd 3t | imm 6t |
 | 算术溢出 | 饱和 + R7=sgn(方向) |
 | 除零 | 结果=0 + R7=T |
 | 栈溢出/地址越界 | HALT |
+
+> **注意**：MAC/ADDI/MULI/ADD/SUB 等指令都会写 `R7` 作为溢出标志，因此 **R7 不能在 MAC 循环中用作持久指针**。建议使用 R5 做地址指针（R5 不会被任何指令作为副效应写入）。
 
 ---
 
@@ -254,6 +260,9 @@ src/
 ├── instruction.rs   ✅ v0.3 完成
 ├── vm.rs            ✅ v0.4 + v0.5 Syscall
 ├── assembler.rs     ✅ v0.6 Assembler
+examples/
+├── tnn.tri          ✅ v0.7 TNN 推理
+├── tnn_ref.py       ✅ v0.7 Python 参考
 ```
 
 ---
@@ -267,5 +276,6 @@ src/
 | v0.3 | Instruction | 22 测试 ✅ |
 | v0.4 | VM + Fibonacci | 79 测试 ✅ |
 | v0.5 | Syscall + CLI | 10 测试 ✅ |
-| v0.6 | Assembler | 38 测试 ✅ (共 184) |
-| v0.7 | AI demo | 小 NN 推理 |
+| v0.6 | Assembler | 38 测试 ✅ |
+| v0.7 | AI demo (TNN) | 6 测试 ✅ (共 190) |
+| v0.8+ | 未来方向 | 待定 |
