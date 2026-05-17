@@ -1,0 +1,57 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anomalyco/opencode/refs/heads/main/schema/opencode-config-schema.json",
+  "name": "tri-vm",
+  "description": "Balanced Ternary Virtual Machine — architecture experiment for ternary computing & AI",
+  "agent": {
+    "modes": [
+      {
+        "name": "default",
+        "instructions": [
+          "You are the TriVM AI agent. You help build and maintain a balanced ternary virtual machine in Rust.",
+          "Follow AGENTS.md for project structure, layers, and testing patterns.",
+          "Always run `cargo test` after any code change — all 184 tests must pass with zero warnings.",
+          "Never add external dependencies to Cargo.toml.",
+          "Tests live in-source (#[cfg(test)] mod tests), not in tests/."
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "name": "run",
+        "description": "Assemble and run a .tri program, or run a precompiled .tribin",
+        "command": "cargo run -- {file}",
+        "autoExecute": true
+      },
+      {
+        "name": "test",
+        "description": "Run all tests",
+        "command": "cargo test",
+        "autoExecute": true
+      },
+      {
+        "name": "build",
+        "description": "Build the project",
+        "command": "cargo build",
+        "autoExecute": true
+      },
+      {
+        "name": "check",
+        "description": "Quick compile check",
+        "command": "cargo check",
+        "autoExecute": true
+      }
+    ]
+  },
+  "customCompletion": {
+    "patterns": [
+      {
+        "trigger": ".tri",
+        "suggestion": "TriVM assembly file with instruction mnemonics, registers (R0-R7), labels, and directives (.text, .data, .word, .asciiz)"
+      },
+      {
+        "trigger": "SYSCALL",
+        "suggestion": "SYSCALL R1 ; function code in Rs (1=EXIT, 2=PRINT_T, 3=PRINT_D, 4=PRINT_C, 7=PRINT_S), argument in R0"
+      }
+    ]
+  }
+}
