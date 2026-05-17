@@ -1,0 +1,8 @@
+.text
+  LDI R0, msg
+  LDI R1, 7        ; PRINT_S
+  SYSCALL R1
+  LDI R1, 1        ; EXIT
+  SYSCALL R1
+.data
+msg: .asciiz "Hello, TriVM!"

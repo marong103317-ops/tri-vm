@@ -1,0 +1,14 @@
+.text
+  LDI R1, 0        ; a = 0
+  LDI R2, 1        ; b = 1
+  LDI R4, 5        ; counter = N
+  LDI R5, 0        ; zero register
+loop:
+  BZ R4, done      ; if counter == 0 -> done
+  ADD R3, R1, R2   ; tmp = a + b
+  ADD R1, R2, R5   ; a = b
+  ADD R2, R3, R5   ; b = tmp
+  ADDI R4, R4, -1  ; counter--
+  JMP loop
+done:
+  HALT

@@ -1,0 +1,20 @@
+; Dot product: [1, T, 1] · [1, 1, T] = 1×1 + T×1 + 1×T = 1 + (-1) + (-1) = -1
+.text
+  LDI  R0, 0            ; sum = 0
+
+  LDI  R1, 1
+  LDI  R2, 1
+  MAC  R0, R1, R2       ; sum += 1 × 1 = 1
+
+  LDI  R1, T
+  LDI  R2, 1
+  MAC  R0, R1, R2       ; sum += T × 1 = -1 -> 0
+
+  LDI  R1, 1
+  LDI  R2, T
+  MAC  R0, R1, R2       ; sum += 1 × T = -1 -> -1
+
+  LDI  R3, 3            ; PRINT_D
+  SYSCALL R3            ; -> should output "-1"
+  LDI  R1, 1            ; EXIT
+  SYSCALL R1

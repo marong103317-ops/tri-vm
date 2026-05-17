@@ -1,0 +1,12 @@
+; Subroutine call: square(5) = 25
+.text
+  LDI   R0, 5
+  CALL  square          ; R0 = square(5) = 25
+  LDI   R3, 3           ; PRINT_D
+  SYSCALL R3
+  LDI   R1, 1           ; EXIT
+  SYSCALL R1
+
+square:
+  MUL   R0, R0, R0
+  RET

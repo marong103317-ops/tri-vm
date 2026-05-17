@@ -1,0 +1,13 @@
+; Compute 0t1T0 + 0tT1 = ?
+; 0t1T0 = 6, 0tT1 = -2, 6 + (-2) = 4 = 0t11
+.text
+  LDI  R0, 0t1T0
+  LDI  R1, 0tT1
+  ADD  R0, R0, R1      ; R0 = 6 + (-2) = 4
+  LDI  R2, 2           ; PRINT_T
+  SYSCALL R2           ; -> should output "11"
+  LDI  R3, 3           ; PRINT_D
+  SYSCALL R3           ; -> should output "4"
+  LDI  R1, 1           ; EXIT
+  SYSCALL R1
+.data
