@@ -15,7 +15,7 @@
 - **汇编器**: 内置 `.tri` 源文件汇编器
 - **命令行界面**: 直接从源码或编译后的二进制运行三进制程序
 - **AI 原语**: 用于神经网络的 MAC（乘累加）操作
-- **184 个测试**: 全面的测试覆盖
+- **190 个测试**: 全面的测试覆盖
 
 ## 🎯 关键词与标签
 
@@ -126,7 +126,7 @@
 # 构建虚拟机
 cargo build --release
 
-# 运行所有测试（184 个）
+# 运行所有测试（190 个）
 cargo test
 
 # 运行汇编源文件
@@ -164,7 +164,11 @@ tri-vm/
 │   ├── ternary.tri     # 平衡三进制算术
 │   ├── subroutine.tri  # CALL/RET 演示
 │   ├── dot_product.tri # MAC 点积
-│   └── demo.tri        # 完整功能展示
+│   ├── demo.tri        # 完整功能展示
+│   ├── tnn.tri         # 4→4→1 TNN 推理
+│   └── tnn_ref.py      # TNN Python 参考实现
+├── AGENTS.md          # AI 代理指南
+├── opencode.json
 ├── Cargo.toml
 ├── LICENSE
 ├── README.md           # 英文版本
@@ -183,8 +187,8 @@ tri-vm/
 | v0.4 | VM 核心 | 79 | ✅ 已完成 |
 | v0.5 | Syscall + CLI | 10 | ✅ 已完成 |
 | v0.6 | Assembler | 38 | ✅ 已完成 |
-| v0.7 | AI 演示 | — | 🟡 进行中 |
-| **总计** | | **184** | ✅ 全部通过 |
+| v0.7 | AI 演示 (TNN) | 6 | ✅ 已完成 |
+| **总计** | | **190** | ✅ 全部通过 |
 
 ---
 
@@ -213,7 +217,7 @@ done:
 
 ## 🤖 AI 演示
 
-运行综合演示：
+### 综合演示（全指令展示）
 
 ```bash
 cargo run -- examples/demo.tri
@@ -234,6 +238,16 @@ cargo run -- examples/demo.tri
 === Done ===
 ```
 
+### TNN（三进制神经网络）
+
+```bash
+cargo run -- examples/tnn.tri
+```
+
+输出：`1`
+
+一个 4→4→1 平衡三进制神经网络推理程序（输入 `[1,1,T,T]` → 输出 `1`）。权重硬编码在 `.data` 段中。Python 参考实现 `examples/tnn_ref.py` 验证全部 8 个测试向量。
+
 ---
 
 ## ✅ 系统验收
@@ -246,6 +260,7 @@ cargo run -- examples/demo.tri
 | S4 MAC 原语 | 乘累加，用于神经网络 | ✅ 通过 |
 | S5 子程序调用 | CALL/RET、栈操作 | ✅ 通过 |
 | S6 溢出检测 | 溢出饱和、R7 标志 | ✅ 通过 |
+| S7 TNN 推理 | 4→4→1 TNN 推理，Python 参考验证 | ✅ 通过 |
 
 ---
 
